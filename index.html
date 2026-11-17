@@ -1428,6 +1428,237 @@ function cetakPDF() {
   else window.print();
 }
 go('peta'); schedule();
+/* ===================== FITUR FASILITAS (kesehatan dan pendidikan) ===================== */
+(function () {
+  const CSS = '.fchips{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}' +
+    '.fchip{display:inline-flex;align-items:center;gap:7px;border:1px solid var(--line);background:var(--card);border-radius:99px;padding:6px 12px;cursor:pointer;font-weight:600;color:var(--ink)}' +
+    '.fchip i{width:11px;height:11px;border-radius:50%;display:inline-block}.fchip b{color:var(--muted);font-weight:700}' +
+    '.fchip.on{background:var(--soft);border-color:var(--pri);color:var(--pri)}.fchip.act{border-style:dashed;color:var(--muted)}' +
+    '.fnote{margin-top:10px;color:var(--muted);font-size:12.5px;line-height:1.55}' +
+    '#fWarn details{margin-top:12px;background:rgba(245,158,11,.14);border-radius:12px;padding:10px 12px;font-size:13px}#fWarn summary{cursor:pointer;font-weight:700}' +
+    '.ftab{border-collapse:collapse;margin-top:6px;font-size:12.5px;width:100%}.ftab td{padding:2px 8px 2px 0;border:0;white-space:normal;text-align:left;vertical-align:top}.ftab td.fk{color:#64748B;white-space:nowrap}';
+  document.head.appendChild(Object.assign(document.createElement('style'), { textContent: CSS }));
+
+  const GRUP = {
+    kesehatan: { t: 'Kesehatan', ic: '🏥', jenis: ['RSUD', 'Rumah Sakit', 'Puskesmas', 'Pustu', 'Klinik'], def: ['Puskesmas'] },
+    pendidikan: { t: 'Pendidikan', ic: '🎓', jenis: ['KB', 'TK', 'SD', 'MI', 'SMP', 'MTs', 'SMA', 'MA', 'SMK', 'SLB', 'PKBM', 'TPA', 'SPS', 'RA', 'Perguruan Tinggi'], def: ['SMA', 'SMK', 'MA'] }
+  };
+  const ALLJ = GRUP.kesehatan.jenis.concat(GRUP.pendidikan.jenis);
+  const FCOL = ['#EF4444', '#F97316', '#10B981', '#8B5CF6', '#0EA5E9', '#4F46E5', '#F59E0B', '#EC4899', '#14B8A6', '#84CC16', '#6366F1', '#06B6D4', '#A855F7', '#D946EF', '#0F766E', '#B45309', '#475569', '#BE123C', '#65A30D'];
+  const fcolor = j => { const i = ALLJ.indexOf(j); return i < 0 ? '#64748B' : FCOL[i % FCOL.length]; };
+  let FAS = null, FM = null, FG = null, FB = {};
+  const pc = v => { const n = typeof v === 'number' ? v : parseFloat(String(v == null ? '' : v).replace(',', '.')); return isFinite(n) ? n : null; };
+
+  /* ---------- data ---------- */
+  function prepFas(d) {
+    const recs = [], errs = [];
+    ['kesehatan', 'pendidikan'].forEach(g => {
+      const t = d && d[g]; if (!t) return;
+      if (t.error) errs.push(t.error);
+      (t.rows || []).forEach(r => {
+        const o = { g: g, i: recs.length };
+        t.cols.forEach((c, k) => { o[c] = r[k]; });
+        o.nama = String(o.nama == null ? '' : o.nama); o.subkategori = String(o.subkategori == null ? '' : o.subkategori);
+        o.lat = pc(o.lintang); o.lng = pc(o.bujur); recs.push(o);
+      });
+    });
+    return { recs: recs, errs: errs, geo: false, ready: false };
+  }
+  function loadSet(j, cb, fail) {
+    if (PD[j]) return cb();
+    google.script.run.withSuccessHandler(d => { PD[j] = JSON.parse(d); buildLayers(j); cb(); }).withFailureHandler(fail)[PFN[j]]();
+  }
+  function assign(withGeo) {
+    const K = withGeo ? PD.kec.features : [], D = withGeo ? PD.desa.features : [];
+    FAS.recs.forEach(o => {
+      o.kec = ''; o.desa = ''; o.ok = false; o.why = '';
+      if (o.lat == null || o.lng == null || o.lat === 0 || o.lng === 0) { o.why = 'Koordinat kosong atau tidak valid'; return; }
+      if (withGeo) {
+        const k = featureAt(K, o.lat, o.lng);
+        if (!k) { o.why = 'Koordinat berada di luar Kabupaten Ngawi'; return; }
+        o.kec = k.properties.K; const dd = featureAt(D, o.lat, o.lng); o.desa = dd ? dd.properties.D : String(o.desa || '');
+      }
+      o.ok = true;
+    });
+    FAS.geo = withGeo; FAS.ready = true;
+  }
+  function loadFas(force) {
+    if (FAS && FAS.ready && force !== true) return;   // data besar: tidak dimuat ulang otomatis
+    const b = $('bRef'); if (b) b.disabled = true;
+    const fin = () => { if (b) b.disabled = false; hideSplash(); };
+    google.script.run.withSuccessHandler(d => {
+      fin(); const nf = prepFas(d); if (cur !== 'fas') { FAS = nf; return; }
+      setPill('ok'); $('sheetName').textContent = 'Terhubung ke tab Fasilitas Kesehatan dan Fasilitas Pendidikan';
+      const go1 = withGeo => { FAS = nf; assign(withGeo); if (cur === 'fas') { $('msg').innerHTML = ''; ST.fkey = ''; updFas(); } };
+      loadSet('kab', () => loadSet('kec', () => loadSet('desa', () => go1(true), () => go1(false)), () => go1(false)), () => go1(false));
+    }).withFailureHandler(e => {
+      fin(); setPill('err', e.message);
+      if (cur === 'fas' && !(FAS && FAS.ready)) $('msg').innerHTML = '<div class="card empty">Gagal memuat data fasilitas.<br><small>' + esc(e.message) + '</small></div>';
+    }).getFasilitas();
+  }
+
+  /* ---------- peta ---------- */
+  function ensureFMap() {
+    if (FM) return;
+    FM = L.map('fmap', { preferCanvas: true }).setView([-7.46, 111.4], 10);
+    FB = { 'Peta jalan': L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19, attribution: '© OpenStreetMap' }),
+           'Citra satelit': L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', { maxZoom: 19, attribution: 'Esri, Maxar' }) };
+    FB[$('fBase').value].addTo(FM);
+    if (PD.kec) L.geoJSON(PD.kec, { style: { color: '#94A3B8', weight: 1, fill: false, interactive: false }, interactive: false }).addTo(FM);
+    if (PD.kab) { const kb = L.geoJSON(PD.kab, { style: { color: '#4338CA', weight: 2.5, fill: false }, interactive: false }).addTo(FM); try { FAS.kabBounds = kb.getBounds(); } catch (e) {} }
+    FG = L.featureGroup().addTo(FM);
+    setTimeout(() => { if (FM) FM.invalidateSize(); }, 200);
+  }
+  function popFas(o) {
+    const row = (k, v) => (v === '' || v == null) ? '' : '<tr><td class="fk">' + k + '</td><td>' + esc(v) + '</td></tr>';
+    const wil = [o.desa, o.kec ? 'Kec. ' + o.kec : ''].filter(Boolean).join(', ');
+    const n = v => (v === '' || v == null) ? '' : fmt(Number(v));
+    const det = o.g === 'kesehatan'
+      ? row('Alamat', o.alamat) + row('Wilayah', wil) + row('Telepon', o.telepon) + row('Kelas RS', o.kelas_rs) + row('Jenis RS', o.jenis_rs) + row('Kode', o.id)
+      : row('NPSN / Kode', o.id) + row('Bentuk', o.bentuk_pendidikan) + row('Alamat', o.alamat) + row('Wilayah', wil) + row('Akreditasi', o.akreditasi) + row('Peserta didik', n(o.peserta_didik)) + row('PTK', n(o.ptk)) + row('Rombel', n(o.rombel));
+    const su = safeUrl(o.url);
+    return '<div class="pp"><b>' + esc(o.nama) + '</b><br><span class="mut">' + esc(o.subkategori) + (o.status ? ' · ' + esc(o.status) : '') + '</span>' +
+      '<table class="ftab">' + det + '</table><div class="mut" style="margin-top:4px">' + o.lat.toFixed(5) + ', ' + o.lng.toFixed(5) + '</div>' +
+      '<div class="pp-act"><a class="pp-btn" href="' + gmapsLihat(o.lat, o.lng) + '" target="_blank" rel="noopener">🗺️ Google Maps</a><a class="pp-btn" href="' + gmapsRute(o.lat, o.lng) + '" target="_blank" rel="noopener">🧭 Rute</a>' +
+      (su ? '<a class="pp-btn" href="' + esc(su) + '" target="_blank" rel="noopener">🔗 Sumber</a>' : '') + '</div></div>';
+  }
+  function marker(o) {
+    if (o._m) return o._m;
+    const m = L.circleMarker([o.lat, o.lng], { radius: 6.5, weight: 1.5, color: '#fff', fillColor: fcolor(o.subkategori), fillOpacity: .92 });
+    m.bindPopup(() => popFas(o), { maxWidth: 320 }); m.bindTooltip(o.nama, { direction: 'top' });
+    return (o._m = m);
+  }
+
+  /* ---------- tampilan ---------- */
+  function insFas(rows, unm, g, J, K) {
+    if (!rows.length) return { head: 'Belum ada fasilitas yang ditampilkan. Pilih jenis fasilitas pada filter di atas.', cards: [] };
+    const head = 'Menampilkan ' + bd(fmt(rows.length) + ' fasilitas') + ' ' + g.toLowerCase() + ' di Kabupaten Ngawi, terbanyak ' + bd(J[0][0]) + ' (' + fmt(J[0][1]) + ')' + (K.length ? ' dan paling banyak di Kecamatan ' + bd(K[0][0]) + ' (' + fmt(K[0][1]) + ').' : '.');
+    const cards = [{ ic: '🏷️', t: 'Sebaran per Jenis', w: true, x: J.slice(0, 6).map(a => bd(a[0]) + ': ' + fmt(a[1])).join('<br>') }];
+    if (K.length) cards.push({ ic: '📍', t: 'Kecamatan Terbanyak', v: K[0][0], s: fmt(K[0][1]) + ' fasilitas', p: K[0][1] / rows.length * 100, x: K.slice(0, 3).map(a => bd(a[0]) + ': ' + fmt(a[1])).join('<br>') });
+    const tips = [];
+    if (unm.length) tips.push(bd(fmt(unm.length) + ' fasilitas') + ' belum dapat ditampilkan karena koordinatnya kosong atau berada di luar Kabupaten Ngawi. Periksa dan perbaiki koordinatnya pada spreadsheet.');
+    if (g === 'Kesehatan') tips.push('Data Puskesmas, Pustu, dan klinik berasal dari OpenStreetMap sehingga belum tentu mencakup seluruh fasilitas.');
+    cards.push({ ic: '💡', t: 'Hal yang Perlu Diperhatikan', w: true, x: tips.join('<br>') || 'Tidak ada hal yang mencolok.' });
+    return { head: head, cards: cards };
+  }
+  function updFas() {
+    if (cur !== 'fas' || !FAS || !FAS.ready || !$('fmap')) return;
+    const g = ST.fgrup, G = GRUP[g], recs = FAS.recs.filter(o => o.g === g);
+    const present = [...new Set(recs.map(o => o.subkategori))];
+    const jenisAll = G.jenis.filter(j => present.includes(j)).concat(present.filter(j => !G.jenis.includes(j)).sort());
+    ST.fjAll = jenisAll;
+    if (!ST.fjenis) { const d = G.def.filter(j => jenisAll.includes(j)); ST.fjenis = new Set(d.length ? d : jenisAll.slice(0, 1)); }
+    const kecs = FAS.geo ? [...new Set(PD.kec.features.map(f => f.properties.K))].sort((a, b) => a.localeCompare(b)) : [];
+    const selK = (ST.sel.fk || []).filter(k => kecs.includes(k));
+    msSet('fk', kecs.map(k => ({ v: k, t: k })), selK, 'Semua kecamatan', 'kecamatan');
+    const mk = $('ms-fk'); if (mk) mk.style.display = kecs.length ? '' : 'none';
+    document.querySelectorAll('#fGrup button').forEach(b => b.classList.toggle('on', b.dataset.g === g));
+    const q = (ST.fq || '').toLowerCase().trim();
+    const hit = o => !q || (o.nama + ' ' + (o.alamat || '') + ' ' + (o.kec || '') + ' ' + (o.desa || '')).toLowerCase().includes(q);
+    const base = recs.filter(o => hit(o) && (!selK.length || (o.ok && selK.includes(o.kec))));
+    const cnt = {}; base.forEach(o => { if (o.ok) cnt[o.subkategori] = (cnt[o.subkategori] || 0) + 1; });
+    $('fChips').innerHTML = jenisAll.map(j => '<button type="button" class="fchip' + (ST.fjenis.has(j) ? ' on' : '') + '" data-j="' + esc(j) + '"><i style="background:' + fcolor(j) + '"></i>' + esc(j) + ' <b>' + fmt(cnt[j] || 0) + '</b></button>').join('') +
+      '<button type="button" class="fchip act" data-a="all">Pilih semua</button><button type="button" class="fchip act" data-a="none">Reset</button>';
+    const rows = base.filter(o => o.ok && ST.fjenis.has(o.subkategori)).sort((a, b) => a.nama.localeCompare(b.nama));
+    const unm = selK.length ? [] : recs.filter(o => !o.ok && ST.fjenis.has(o.subkategori) && hit(o));
+    ensureFMap();
+    const key = JSON.stringify([g, [...ST.fjenis].sort(), selK, q]);
+    FG.clearLayers(); rows.forEach(o => FG.addLayer(marker(o)));
+    if (ST.fkey !== key) {
+      ST.fkey = key;
+      if (rows.length) FM.fitBounds(L.latLngBounds(rows.map(o => [o.lat, o.lng])), { padding: [40, 40], maxZoom: 15 });
+      else if (FAS.kabBounds) FM.fitBounds(FAS.kabBounds);
+    }
+    const byJ = {}, byK = {}; rows.forEach(o => { byJ[o.subkategori] = (byJ[o.subkategori] || 0) + 1; if (o.kec) byK[o.kec] = (byK[o.kec] || 0) + 1; });
+    const J = Object.entries(byJ).sort((a, b) => b[1] - a[1]), K = Object.entries(byK).sort((a, b) => b[1] - a[1]);
+    $('fKpi').innerHTML = kpiHTML([
+      ['FASILITAS DITAMPILKAN', fmt(rows.length), G.t + ' · ' + ST.fjenis.size + ' jenis dipilih', G.ic, ''],
+      ['JENIS TERBANYAK', J.length ? J[0][0] : '–', J.length ? fmt(J[0][1]) + ' titik' : '', '🏷️', ''],
+      ['KECAMATAN TERBANYAK', K.length ? K[0][0] : '–', K.length ? fmt(K[0][1]) + ' titik' : '', '📍', ''],
+      ['BELUM DAPAT DIPETAKAN', fmt(unm.length), 'koordinat kosong atau di luar Ngawi', '⚠️', unm.length ? 'down' : '']]);
+    $('fWarn').innerHTML = unm.length ? '<details><summary>⚠️ ' + fmt(unm.length) + ' fasilitas belum dapat ditampilkan di peta (klik untuk melihat daftar)</summary><div class="tw" style="margin-top:8px;max-height:260px"><table><thead><tr><th class="l">Nama</th><th class="l">Jenis</th><th class="l">Alasan</th></tr></thead><tbody>' +
+      unm.slice(0, 300).map(o => '<tr><td class="l">' + esc(o.nama) + '</td><td class="l">' + esc(o.subkategori) + '</td><td class="l">' + esc(o.why) + '</td></tr>').join('') + '</tbody></table></div></details>' : '';
+    $('fNote').innerHTML = (g === 'kesehatan'
+      ? 'Sumber: RS Online Kementerian Kesehatan (RSUD dan rumah sakit) serta OpenStreetMap (Puskesmas, Pustu, dan klinik; pengambilan data 23 Agustus 2026). Data OpenStreetMap berasal dari pemetaan komunitas sehingga belum tentu mencakup seluruh fasilitas.'
+      : 'Sumber: Referensi Data Pendidikan Kemendikdasmen dan Kemenag. Titik yang koordinatnya kosong atau berada di luar Kabupaten Ngawi tidak ditampilkan.') +
+      (FAS.geo ? ' Kecamatan dan desa pada popup dihitung otomatis dari koordinat titik.' : ' Pencocokan kecamatan dan desa tidak tersedia karena berkas peta wilayah gagal dimuat.');
+    const tc = $('fTblCard'); tc.style.display = ST.ftbl ? '' : 'none'; $('fAll').textContent = ST.ftbl ? '▴ Sembunyikan Data' : '📋 Lihat Semua Data';
+    if (ST.ftbl) {
+      const kes = g === 'kesehatan';
+      const cols = kes ? [['Nama', o => o.nama], ['Jenis', o => o.subkategori], ['Kecamatan', o => o.kec], ['Desa/Kel.', o => o.desa], ['Alamat', o => o.alamat], ['Telepon', o => o.telepon]]
+                       : [['Nama', o => o.nama], ['Jenjang', o => o.subkategori], ['Status', o => o.status], ['Kecamatan', o => o.kec], ['Desa/Kel.', o => o.desa], ['Alamat', o => o.alamat], ['Peserta didik', o => o.peserta_didik === '' ? '' : fmt(Number(o.peserta_didik))]];
+      $('fTbl').innerHTML = '<table><thead><tr>' + cols.map(c => '<th class="l">' + c[0] + '</th>').join('') + '</tr></thead><tbody>' +
+        rows.slice(0, 500).map(o => '<tr data-fi="' + o.i + '" style="cursor:pointer" title="Klik untuk menampilkan di peta">' + cols.map(c => '<td class="l">' + esc(c[1](o) == null ? '' : c[1](o)) + '</td>').join('') + '</tr>').join('') + '</tbody></table>' +
+        (rows.length > 500 ? '<div class="empty">Menampilkan 500 dari ' + fmt(rows.length) + ' baris. Gunakan filter atau pencarian untuk mempersempit.</div>' : '');
+    }
+    ST.frows = rows;
+    renderAI(insFas(rows, unm, G.t, J, K));
+  }
+  function exportFas() {
+    const rows = ST.frows || []; if (!rows.length) return;
+    const head = ['Nama', 'Jenis', 'Status', 'Kecamatan', 'Desa/Kelurahan', 'Alamat', 'Telepon', 'Kode/NPSN', 'Lintang', 'Bujur', 'Sumber'];
+    const body = rows.map(o => [o.nama, o.subkategori, o.status || '', o.kec, o.desa, o.alamat || '', o.telepon || '', o.id || '', o.lat, o.lng, o.sumber || '']);
+    const csv = '\uFEFF' + [head].concat(body).map(r => r.map(c => '"' + String(c == null ? '' : c).replace(/"/g, '""') + '"').join(';')).join('\r\n');
+    const name = 'fasilitas-' + ST.fgrup + '-ngawi';
+    if (window.AndroidBridge && AndroidBridge.saveFile) { AndroidBridge.saveFile(name + '.csv', 'text/csv', csv); return; }
+    const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([csv], { type: 'text/csv;charset=utf-8' })); a.download = name + '.csv'; a.click();
+  }
+  function pageHTML() {
+    return '<div class="hero fade"><h2>Fasilitas</h2><p>Sebaran fasilitas kesehatan dan pendidikan di Kabupaten Ngawi. Pilih kelompok dan jenis fasilitas, lalu klik titik pada peta untuk melihat deskripsinya.</p></div>' +
+      '<div class="card"><div class="row"><b>KELOMPOK:</b><div class="seg" id="fGrup"><button data-g="kesehatan">🏥 Kesehatan</button><button data-g="pendidikan">🎓 Pendidikan</button></div>' +
+      msHTML('fk', 'Kecamatan') + '<select id="fBase" aria-label="Peta dasar"><option>Peta jalan</option><option>Citra satelit</option></select>' +
+      '<input id="fCari" class="grow" type="search" placeholder="Cari nama atau alamat fasilitas…"></div><div class="fchips" id="fChips"></div><div id="fWarn"></div></div>' +
+      '<div class="kpis" id="fKpi"></div><div class="card"><div class="map" id="fmap"></div><div class="fnote" id="fNote"></div></div>' +
+      '<div class="row"><button class="btn pri" id="fAll">📋 Lihat Semua Data</button></div>' +
+      '<div class="card" id="fTblCard" style="display:none"><h3>Daftar Fasilitas</h3><div class="tw" id="fTbl"></div></div><div id="msg"></div><div id="ai"></div>';
+  }
+  function bindFas() {
+    const on = (id, ev, fn) => { const e = $(id); if (e) e[ev] = fn; };
+    on('fGrup', 'onclick', e => { const b = e.target.closest('button'); if (!b) return; ST.fgrup = b.dataset.g; ST.fjenis = null; ST.sel.fk = []; ST.fkey = ''; updFas(); });
+    on('fChips', 'onclick', e => {
+      const b = e.target.closest('button'); if (!b) return;
+      if (b.dataset.a === 'all') ST.fjenis = new Set(ST.fjAll || []);
+      else if (b.dataset.a === 'none') ST.fjenis = new Set();
+      else { const j = b.dataset.j; if (ST.fjenis.has(j)) ST.fjenis.delete(j); else ST.fjenis.add(j); }
+      updFas();
+    });
+    on('fBase', 'onchange', e => { if (!FM) return; Object.keys(FB).forEach(k => { if (FM.hasLayer(FB[k])) FM.removeLayer(FB[k]); }); FB[e.target.value].addTo(FM); });
+    on('fCari', 'oninput', e => { ST.fq = e.target.value; updFas(); });
+    on('fAll', 'onclick', () => { ST.ftbl = !ST.ftbl; updFas(); if (ST.ftbl) setTimeout(() => { const c = $('fTblCard'); if (c) c.scrollIntoView({ behavior: 'smooth', block: 'start' }); }, 80); });
+    on('fTbl', 'onclick', e => {
+      const tr = e.target.closest('tr[data-fi]'); if (!tr || !FAS) return;
+      const o = FAS.recs[+tr.dataset.fi]; if (!o || !o._m || !FM) return;
+      FM.setView([o.lat, o.lng], 17); o._m.openPopup(); $('fmap').scrollIntoView({ behavior: 'smooth', block: 'center' });
+    });
+  }
+
+  /* ---------- pemasangan ke aplikasi ---------- */
+  MENUS.push({ id: 'fas', icon: '🏥', label: 'Fasilitas', desc: 'Sebaran fasilitas kesehatan dan pendidikan di Kabupaten Ngawi.' });
+  const pa = document.querySelector('#nav a[data-id="peta"]');
+  const link = '<a data-id="fas" tabindex="0"><span>🏥</span>Fasilitas</a>';
+  if (pa) pa.insertAdjacentHTML('afterend', link); else $('nav').insertAdjacentHTML('beforeend', link);
+
+  const _go = go, _update = update, _load = load, _xls = $('bXls').onclick;
+  go = function (id) {
+    if (FM) { FM.remove(); FM = null; FG = null; }
+    if (id !== 'fas') return _go(id);
+    if (MAP) { MAP.remove(); MAP = null; GRP = null; LOK.grp = null; }
+    cur = id;
+    ST = { pjenis: 'kec', tIdx: 0, type: null, cn: null, sort: null, q: '', sel: {}, showAll: false, dkey: '', fgrup: 'kesehatan', fjenis: null, fq: '', fkey: '', ftbl: false };
+    Object.values(charts).forEach(c => c.destroy()); charts = {};
+    document.querySelectorAll('.nav a').forEach(a => a.classList.toggle('on', a.dataset.id === id));
+    drawer(false); window.scrollTo(0, 0); $('sheetName').textContent = 'Menghubungkan…';
+    document.body.classList.remove('mapmode'); document.body.classList.remove('popen');
+    $('main').innerHTML = pageHTML();
+    $('aiFab').style.display = 'none'; io.disconnect(); io.observe($('ai')); ioMap.disconnect(); $('toMap').style.display = 'none';
+    bindFas();
+    if (FAS && FAS.ready) updFas(); else $('msg').innerHTML = '<div class="card"><div class="load"></div><div class="load" style="width:70%"></div><div class="load" style="width:50%"></div></div>';
+    load(FAS && FAS.ready ? false : true);
+  };
+  update = function () { if (cur === 'fas') return updFas(); return _update(); };
+  load = function (force) { if (cur === 'fas') return loadFas(force); return _load(force); };
+  $('bXls').onclick = function () { if (cur === 'fas') return exportFas(); return _xls.apply(this, arguments); };
+})();
 </script>
 </body>
 </html>
