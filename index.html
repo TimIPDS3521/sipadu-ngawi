@@ -1429,37 +1429,163 @@ function cetakPDF() {
   else window.print();
 }
 go('peta'); schedule();
-/* ===================== MENU INFRASTRUKTUR (Fasilitas Kesehatan dan Fasilitas Pendidikan) ===================== */
+/* ===================== PEMBARUAN SIPADU: nama menu, sub menu, Peta Infrastruktur, About, unduhan tabel dan grafik ===================== */
 (function () {
+  /* ----- ISI DI SINI ----- */
+  const ABOUT = { telp: '082257936422', email: 'badanpusatstatistik.ngawi@gmail.com', link: '', linkTeks: 'Buka tautan' };   // telp: nomor pengaduan, contoh '0351-123456'. link: tautan tambahan (boleh dikosongkan)
   const ID = 'infra';
-  const CSS = '.fmk{background:transparent;border:0}.fmk svg{display:block;filter:drop-shadow(0 2px 2px rgba(0,0,0,.35))}' +
-    '.fbadge{display:none;position:absolute;top:37px;left:50%;transform:translateX(-50%);color:#fff;font:700 10px/1 system-ui,sans-serif;padding:2px 5px;border-radius:6px;white-space:nowrap;border:1px solid #fff;box-shadow:0 1px 3px rgba(0,0,0,.35)}' +
-    '.fm-lab .fbadge{display:block}' +
-    '.fcl-w{background:transparent;border:0}.fcl{width:40px;height:40px;border-radius:50%;color:#fff;font:800 13px/1 system-ui,sans-serif;display:grid;place-items:center;border:3px solid #fff;box-shadow:0 2px 8px rgba(0,0,0,.4)}' +
-    '.fkt{background:#4F46E5;color:#fff;border:0;border-radius:8px;font-weight:700;box-shadow:0 2px 8px rgba(0,0,0,.3)}.fkt:before{display:none}' +
-    '.fchips{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}' +
-    '.fchip{display:inline-flex;align-items:center;gap:7px;border:1px solid var(--line);background:var(--card);border-radius:99px;padding:5px 12px 5px 8px;cursor:pointer;font-weight:600;color:var(--ink)}' +
-    '.fchip svg{display:block}.fchip b{color:var(--muted);font-weight:700}.fchip.on{background:var(--soft);border-color:var(--pri);color:var(--pri)}.fchip.act{border-style:dashed;color:var(--muted);padding-left:12px}' +
-    '.chip2.on{background:var(--pri);color:#fff;border-color:var(--pri)}' +
-    '.flgl{display:grid;gap:7px;max-height:42vh;overflow:auto;min-width:210px}.flg{display:flex;align-items:center;gap:8px;font-size:12.5px}.flg svg{display:block;flex:none}.flg b{margin-left:auto;color:var(--muted);padding-left:10px}' +
-    '.fnote{color:var(--muted);font-size:12.5px;line-height:1.55}' +
-    '#fWarn details{background:rgba(245,158,11,.14);border-radius:12px;padding:10px 12px;font-size:13px}#fWarn summary{cursor:pointer;font-weight:700}' +
-    '.ftab{border-collapse:collapse;margin-top:6px;font-size:12.5px;width:100%}.ftab td{padding:2px 8px 2px 0;border:0;white-space:normal;text-align:left;vertical-align:top}.ftab td.fk{color:#64748B;white-space:nowrap}' +
-    '.fbdg{display:inline-block;color:#fff;border-radius:99px;padding:1px 9px;font-size:11.5px;font-weight:700;margin-top:3px}';
+
+  const CSS = [
+    '.live{display:none!important}',
+    '#iv,#dIv,#bRef,#bXls,#bPdf,.dtools button[onclick*="load(true)"],.dtools button[onclick*="bXls"],.dtools button[onclick*="print"]{display:none!important}',
+    /* menu dan sub menu */
+    '.nav a .navt{flex:1;min-width:0}.nav .caret{font-style:normal;margin-left:auto;padding:2px 8px;border-radius:8px;transition:transform .2s;opacity:.85}.nav .caret:hover{background:rgba(127,127,127,.2)}',
+    '.navgrp.open .caret{transform:rotate(180deg)}.navgrp .sub{display:none;margin:2px 0 6px 18px;padding-left:8px;border-left:2px solid var(--line)}.navgrp.open .sub{display:block}',
+    '.nav a.subi{font-size:13.5px;padding:9px 10px;font-weight:600}',
+    /* ikon orang di lokasi pengguna */
+    '.me-ic{overflow:visible}.me-person{position:absolute;left:50%;top:50%;width:44px;height:64px;margin:-60px 0 0 -22px;pointer-events:none}',
+    '.me-person svg{display:block;overflow:visible;filter:drop-shadow(0 3px 3px rgba(0,0,0,.3))}.me-body{animation:meBob 1.3s ease-in-out infinite}',
+    '.me-arm{transform-origin:31.5px 30px;animation:meWave 1s ease-in-out infinite}.me-sh{fill:rgba(15,23,42,.28);animation:meSh 1.3s ease-in-out infinite;transform-origin:22px 60px}',
+    '.me-ring{position:absolute;left:50%;top:57px;width:26px;height:10px;margin-left:-13px;border-radius:50%;border:2px solid #2563EB;opacity:0;animation:meRing 1.8s ease-out infinite}.me-ring.r2{animation-delay:.9s}',
+    '.me-bubble{position:absolute;bottom:100%;left:50%;transform:translateX(-50%);margin-bottom:4px;background:#fff;color:#0F172A;font:700 10px/1 system-ui,sans-serif;padding:4px 7px;border-radius:8px;white-space:nowrap;box-shadow:0 2px 6px rgba(0,0,0,.3);animation:meBub 2.6s ease-in-out infinite}',
+    '.me-bubble:after{content:"";position:absolute;left:50%;top:100%;margin-left:-4px;border:4px solid transparent;border-top-color:#fff}',
+    '@keyframes meBob{0%,100%{transform:translateY(0)}50%{transform:translateY(-3px)}}@keyframes meWave{0%,100%{transform:rotate(-22deg)}50%{transform:rotate(26deg)}}',
+    '@keyframes meSh{0%,100%{transform:scale(1)}50%{transform:scale(.82)}}@keyframes meRing{0%{transform:scale(.4);opacity:.9}100%{transform:scale(1.9);opacity:0}}@keyframes meBub{0%,100%{transform:translateX(-50%) translateY(0)}50%{transform:translateX(-50%) translateY(-2px)}}',
+    /* toolbar tabel dan grafik */
+    '.tbar,.cbar{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin:0 0 10px}.tbar .btn,.cbar .btn{padding:6px 12px;font-size:12.5px}.tbar .grow,.cbar .grow{flex:1}',
+    '#printArea{display:none}',
+    '@media print{body.printing-table>*:not(#printArea){display:none!important}body.printing-table #printArea{display:block!important;padding:12px;color:#000;background:#fff}',
+    '#printArea table{width:100%;border-collapse:collapse;font:11px system-ui,sans-serif}#printArea th,#printArea td{border:1px solid #bbb;padding:4px 6px;white-space:normal;text-align:left;background:#fff;color:#000}#printArea th{background:#eee;position:static}}',
+    /* Peta Infrastruktur */
+    '.fmk{background:transparent;border:0}.fmk svg{display:block;filter:drop-shadow(0 2px 2px rgba(0,0,0,.35))}',
+    '.fbadge{display:none;position:absolute;top:37px;left:50%;transform:translateX(-50%);color:#fff;font:700 10px/1 system-ui,sans-serif;padding:2px 5px;border-radius:6px;white-space:nowrap;border:1px solid #fff;box-shadow:0 1px 3px rgba(0,0,0,.35)}.fm-lab .fbadge{display:block}',
+    '.fcl-w{background:transparent;border:0}.fcl{width:40px;height:40px;border-radius:50%;color:#fff;font:800 13px/1 system-ui,sans-serif;display:grid;place-items:center;border:3px solid #fff;box-shadow:0 2px 8px rgba(0,0,0,.4)}',
+    '.fkt{background:#4F46E5;color:#fff;border:0;border-radius:8px;font-weight:700;box-shadow:0 2px 8px rgba(0,0,0,.3)}.fkt:before{display:none}',
+    '.fchips{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}.fchip{display:inline-flex;align-items:center;gap:7px;border:1px solid var(--line);background:var(--card);border-radius:99px;padding:5px 12px 5px 8px;cursor:pointer;font-weight:600;color:var(--ink)}',
+    '.fchip svg{display:block}.fchip b{color:var(--muted);font-weight:700}.fchip.on{background:var(--soft);border-color:var(--pri);color:var(--pri)}.fchip.act{border-style:dashed;color:var(--muted);padding-left:12px}',
+    '.chip2.on{background:var(--pri);color:#fff;border-color:var(--pri)}.flgl{display:grid;gap:7px;max-height:42vh;overflow:auto;min-width:210px}.flg{display:flex;align-items:center;gap:8px;font-size:12.5px}.flg svg{display:block;flex:none}.flg b{margin-left:auto;color:var(--muted);padding-left:10px}',
+    '.fnote{color:var(--muted);font-size:12.5px;line-height:1.55}#fWarn details{background:rgba(245,158,11,.14);border-radius:12px;padding:10px 12px;font-size:13px}#fWarn summary{cursor:pointer;font-weight:700}',
+    '.ftab{border-collapse:collapse;margin-top:6px;font-size:12.5px;width:100%}.ftab td{padding:2px 8px 2px 0;border:0;white-space:normal;text-align:left;vertical-align:top}.ftab td.fk{color:#64748B;white-space:nowrap}',
+    '.fbdg{display:inline-block;color:#fff;border-radius:99px;padding:1px 9px;font-size:11.5px;font-weight:700;margin-top:3px}',
+    /* About */
+    '.ab-hero{border-radius:22px;padding:30px 28px;color:#fff;background:linear-gradient(120deg,#4338CA,#7C3AED 55%,#0EA5E9);position:relative;overflow:hidden;display:flex;gap:24px;align-items:center;flex-wrap:wrap}',
+    '.ab-hero:after{content:"";position:absolute;right:-70px;top:-70px;width:260px;height:260px;border-radius:50%;background:rgba(255,255,255,.12)}.ab-hero .logo{flex:none;position:relative;z-index:1}.ab-hero div{position:relative;z-index:1}',
+    '.ab-hero h2{margin:8px 0 6px;font-size:28px;font-weight:800;line-height:1.2}.ab-hero p{margin:0;opacity:.93;max-width:60ch}',
+    '.ab-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,340px),1fr));gap:18px}.ab-grid .card p{margin:0 0 8px;line-height:1.6;color:var(--muted)}',
+    '.ab-list{list-style:none;margin:0;padding:0;display:grid;gap:10px}.ab-list li{display:flex;gap:12px;align-items:flex-start;line-height:1.5}.ab-list .ic{width:36px;height:36px;border-radius:11px;background:var(--soft);display:grid;place-items:center;font-size:18px;flex:none}',
+    '.ab-contact{grid-column:1/-1;background:linear-gradient(135deg,#0F172A,#1E1B4B 60%,#312E81);color:#E2E8F0;border:0}.ab-contact h3{color:#fff}.ab-contact p{color:#CBD5E1!important}',
+    '.ab-cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,250px),1fr));gap:12px;margin-top:12px}',
+    '.ab-c{display:flex;gap:12px;align-items:center;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.16);border-radius:16px;padding:14px 16px;color:#fff;text-decoration:none;min-width:0}a.ab-c:hover{background:rgba(255,255,255,.16)}',
+    '.ab-c .ic{width:44px;height:44px;border-radius:13px;background:linear-gradient(135deg,#7C3AED,#0EA5E9);display:grid;place-items:center;font-size:21px;flex:none}.ab-c small{display:block;color:#93A0BC;font-size:11.5px;letter-spacing:.04em}.ab-c b{display:block;font-size:15px;overflow-wrap:anywhere}'
+  ].join('');
   document.head.appendChild(Object.assign(document.createElement('style'), { textContent: CSS }));
 
+  /* ============================== MENU ============================== */
+  const LBL = { peta: 'Peta Wilayah', dash: 'Data Strategis Kabupaten Ngawi', pend: 'Data Kependudukan', a1: 'Data Geografi dan Demografi', a2: 'Data Kesejahteraan Masyarakat', a3: 'Data Daya Saing Daerah', a4: 'Laju Pertumbuhan PDRB', reg: 'Perbandingan Regional' };
+  MENUS.forEach(m => { if (LBL[m.id]) m.label = LBL[m.id]; });
+  if (!MENUS.some(m => m.id === ID)) MENUS.push({ id: ID, icon: '🏢', label: 'Peta Infrastruktur', desc: 'Sebaran fasilitas kesehatan dan pendidikan di Kabupaten Ngawi.' });
+  if (!MENUS.some(m => m.id === 'about')) MENUS.push({ id: 'about', icon: 'ℹ️', label: 'About', desc: 'Tentang SIPADU Ngawi.' });
+  const SUB = ['pend', 'a1', 'a2', 'a3', 'a4', 'reg'];
+  const mn = id => MENUS.find(m => m.id === id) || { icon: '•', label: id };
+  const item = (id, cls) => '<a data-id="' + id + '" tabindex="0"' + (cls ? ' class="' + cls + '"' : '') + '><span>' + mn(id).icon + '</span>' + esc(mn(id).label) + '</a>';
+  const nav = $('nav');
+  nav.innerHTML = '<h4>NAVIGASI UTAMA</h4>' + item('peta') + item(ID) +
+    '<div class="navgrp" id="navGrp"><a data-id="dash" tabindex="0"><span>' + mn('dash').icon + '</span><span class="navt">' + esc(mn('dash').label) + '</span><i class="caret" title="Buka atau tutup sub menu">▾</i></a><div class="sub">' + SUB.map(id => item(id, 'subi')).join('') + '</div></div>' + item('about');
+  nav.addEventListener('click', e => { const c = e.target.closest('.caret'); if (c) { e.stopImmediatePropagation(); e.preventDefault(); $('navGrp').classList.toggle('open'); } }, true);
+  const syncNav = id => { const g = $('navGrp'); if (g && (id === 'dash' || SUB.includes(id))) g.classList.add('open'); };
+
+  /* ============================== IKON ORANG (lokasi pengguna) ============================== */
+  const PERSON = '<div class="me-person"><span class="me-bubble">Anda di sini</span><svg viewBox="0 0 44 64" width="44" height="64" aria-hidden="true"><ellipse class="me-sh" cx="22" cy="60" rx="12" ry="3.2"/><g class="me-body">' +
+    '<rect x="14" y="44" width="6" height="14" rx="3" fill="#1E293B"/><rect x="24" y="44" width="6" height="14" rx="3" fill="#1E293B"/><rect x="12" y="24" width="20" height="22" rx="8" fill="#2563EB"/><rect x="9" y="26" width="5" height="16" rx="2.5" fill="#2563EB" transform="rotate(8 11 26)"/>' +
+    '<g class="me-arm"><rect x="29" y="14" width="5" height="16" rx="2.5" fill="#2563EB"/><circle cx="31.5" cy="13" r="3.2" fill="#FBBF77"/></g><circle cx="22" cy="17" r="9" fill="#FBBF77"/><path d="M13 15c1-8 17-9 18 0c-4-3-13-3-18 0z" fill="#1E293B"/>' +
+    '<circle cx="19" cy="18" r="1.1" fill="#1E293B"/><circle cx="25" cy="18" r="1.1" fill="#1E293B"/><path d="M19 21.5q3 2.6 6 0" stroke="#1E293B" stroke-width="1.3" fill="none" stroke-linecap="round"/></g></svg><span class="me-ring"></span><span class="me-ring r2"></span></div>';
+  let upQ = false;
+  const upgradeMe = () => { upQ = false; document.querySelectorAll('.me-ic:not(.me-up)').forEach(el => { el.classList.add('me-up'); el.innerHTML = PERSON; }); };
+  new MutationObserver(() => { if (!upQ) { upQ = true; setTimeout(upgradeMe, 0); } }).observe(document.body, { childList: true, subtree: true });
+
+  /* ============================== UNDUH TABEL (Excel, PDF) DAN GRAMBAR GRAFIK ============================== */
+  const slug = s => String(s || 'data').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 60) || 'data';
+  const judulDari = el => { const d = el.closest('.dsec'); const h = (d && d.querySelector('h4')) || (el.closest('.card') && el.closest('.card').querySelector('h3')); return (h && h.textContent.trim()) || mn(cur).label || 'Data'; };
+  function simpanTeks(name, csv) {
+    if (window.AndroidBridge && AndroidBridge.saveFile) { AndroidBridge.saveFile(name + '.csv', 'text/csv', csv); return; }
+    const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([csv], { type: 'text/csv;charset=utf-8' })); a.download = name + '.csv'; a.click();
+  }
+  function tabelCSV(tb) {
+    const rows = [...tb.querySelectorAll('tr')].map(tr => [...tr.children].map(c => c.textContent.replace(/[▲▼]/g, '').replace(/\s+/g, ' ').trim()));
+    return '\uFEFF' + rows.map(r => r.map(c => '"' + c.replace(/"/g, '""') + '"').join(';')).join('\r\n');
+  }
+  function cetakTabel(tw, judul) {
+    let pa = document.getElementById('printArea'); if (!pa) { pa = document.createElement('div'); pa.id = 'printArea'; document.body.appendChild(pa); }
+    const t = tw.querySelector('table').cloneNode(true);
+    t.querySelectorAll('button').forEach(b => b.replaceWith(document.createTextNode(b.textContent.replace(/[▲▼]/g, '').trim())));
+    pa.innerHTML = '<h2 style="font:700 18px system-ui,sans-serif;margin:0 0 4px">' + esc(judul) + '</h2><div style="font:12px system-ui,sans-serif;color:#555;margin-bottom:10px">SIPADU Ngawi · ' + new Date().toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' }) + '</div>';
+    pa.appendChild(t);
+    document.body.classList.add('printing-table');
+    const done = () => document.body.classList.remove('printing-table');
+    window.addEventListener('afterprint', done, { once: true }); setTimeout(done, 30000);
+    if (window.AndroidBridge && AndroidBridge.printPage) AndroidBridge.printPage(); else window.print();
+  }
+  function gambarGrafik(cv, judul) {
+    const src = cv.querySelector('canvas'); if (!src) return;
+    const cs = getComputedStyle(document.body), bg = (cs.getPropertyValue('--card') || '#fff').trim(), ink = (cs.getPropertyValue('--ink') || '#0F172A').trim();
+    const pad = 24, th = 44, c = document.createElement('canvas'); c.width = src.width + pad * 2; c.height = src.height + th + pad; const x = c.getContext('2d');
+    x.fillStyle = bg; x.fillRect(0, 0, c.width, c.height); x.fillStyle = ink; x.font = 'bold 20px system-ui,sans-serif'; x.fillText(judul, pad, 30); x.drawImage(src, pad, th);
+    const url = c.toDataURL('image/png'), name = slug(judul) + '.png';
+    if (window.AndroidBridge && AndroidBridge.saveImage) { AndroidBridge.saveImage(name, 'image/png', url.split(',')[1]); return; }
+    const a = document.createElement('a'); a.href = url; a.download = name; a.click();
+  }
+  function hiasTabel() {
+    document.querySelectorAll('#main .tw').forEach(tw => {
+      if (tw.closest('details') || !tw.querySelector('table')) return;
+      const p = tw.previousElementSibling; if (p && p.classList.contains('tbar')) return;
+      const bar = document.createElement('div'); bar.className = 'tbar';
+      bar.innerHTML = '<span class="mut">Unduh tabel</span><span class="grow"></span><button type="button" class="btn" data-a="xls">⬇ Excel</button><button type="button" class="btn" data-a="pdf">🖨 PDF</button>';
+      tw.parentNode.insertBefore(bar, tw);
+    });
+    document.querySelectorAll('#main .cv').forEach(cv => {
+      if (!cv.querySelector('canvas')) return;
+      const p = cv.previousElementSibling; if (p && p.classList.contains('cbar')) return;
+      const bar = document.createElement('div'); bar.className = 'cbar';
+      bar.innerHTML = '<span class="grow"></span><button type="button" class="btn" data-a="img">🖼 Unduh gambar</button>';
+      cv.parentNode.insertBefore(bar, cv);
+    });
+  }
+  const main = $('main'); let hq = false;
+  const mo = new MutationObserver(() => { if (hq) return; hq = true; setTimeout(() => { hq = false; mo.disconnect(); hiasTabel(); mo.observe(main, { childList: true, subtree: true }); }, 120); });
+  mo.observe(main, { childList: true, subtree: true });
+  main.addEventListener('click', e => {
+    const b = e.target.closest('.tbar button, .cbar button'); if (!b) return;
+    const bar = b.parentElement, tgt = bar.nextElementSibling; if (!tgt) return;
+    if (b.dataset.a === 'xls') { const tb = tgt.querySelector('table'); if (tb) simpanTeks(slug(judulDari(tgt)), tabelCSV(tb)); }
+    else if (b.dataset.a === 'pdf') { if (tgt.querySelector('table')) cetakTabel(tgt, judulDari(tgt)); }
+    else if (b.dataset.a === 'img') gambarGrafik(tgt, judulDari(tgt));
+  });
+
+  /* ============================== ABOUT ============================== */
+  function aboutHTML() {
+    const tel = String(ABOUT.telp || '').trim(), mail = String(ABOUT.email || '').trim(), lnk = safeUrl(ABOUT.link);
+    const li = (ic, t, d) => '<li><span class="ic">' + ic + '</span><span><b>' + t + '</b><br><span class="mut">' + d + '</span></span></li>';
+    return '<div class="ab-hero fade"><div class="logo xl" role="img" aria-label="Logo SIPADU Ngawi"></div><div><div class="kick">SIPADU NGAWI</div><h2>Sistem Informasi Data Strategis Terpadu</h2><p>Kabupaten Ngawi. Satu tempat untuk membaca data statistik, peta wilayah, dan sebaran infrastruktur secara cepat dan mudah.</p></div></div>' +
+      '<div class="ab-grid">' +
+      '<div class="card"><h3>Tentang SIPADU</h3><p>SIPADU menyatukan data strategis Kabupaten Ngawi dalam satu dashboard. Data yang semula tersebar dalam tabel spreadsheet disajikan sebagai grafik, peta interaktif, dan ringkasan otomatis, sehingga mudah dibaca oleh masyarakat, perangkat daerah, instansi, dan peneliti.</p><p>Data statistik bersumber dari Badan Pusat Statistik Kabupaten Ngawi, sedangkan data fasilitas bersumber dari RS Online Kementerian Kesehatan, OpenStreetMap, serta Referensi Data Pendidikan Kemendikdasmen dan Kemenag.</p></div>' +
+      '<div class="card"><h3>Yang Dapat Anda Lakukan</h3><ul class="ab-list">' + li('📍', 'Peta Wilayah', 'Lihat batas kabupaten, kecamatan, desa, dan SLS (RT/RW), serta posisi Anda.') + li('🏢', 'Peta Infrastruktur', 'Temukan sebaran fasilitas kesehatan dan pendidikan beserta deskripsinya.') +
+      li('📊', 'Data Strategis', 'Baca data kependudukan, geografi, kesejahteraan, daya saing, PDRB, dan perbandingan regional.') + li('✨', 'Analisis Ringkas', 'Dapatkan ringkasan otomatis dari data yang sedang Anda lihat.') + '</ul></div>' +
+      '<div class="card ab-contact"><h3>Pengaduan dan Kontak</h3><p>Mengalami kendala atau punya masukan untuk SIPADU? Hubungi kami melalui kontak berikut.</p><div class="ab-cards">' +
+      (tel ? '<a class="ab-c" href="tel:' + esc(tel.replace(/[^\d+]/g, '')) + '"><span class="ic">📞</span><span><small>TELEPON PENGADUAN</small><b>' + esc(tel) + '</b></span></a>' : '<div class="ab-c"><span class="ic">📞</span><span><small>TELEPON PENGADUAN</small><b>Segera ditambahkan</b></span></div>') +
+      (mail ? '<a class="ab-c" href="mailto:' + esc(mail) + '?subject=Pengaduan%20SIPADU%20Ngawi"><span class="ic">✉️</span><span><small>EMAIL</small><b>' + esc(mail) + '</b></span></a>' : '') +
+      (lnk ? '<a class="ab-c" href="' + esc(lnk) + '" target="_blank" rel="noopener"><span class="ic">🔗</span><span><small>TAUTAN</small><b>' + esc(ABOUT.linkTeks || 'Buka tautan') + '</b></span></a>' : '') + '</div></div></div>';
+  }
+
+  /* ============================== PETA INFRASTRUKTUR ============================== */
   const GRUP = {
     kesehatan: { t: 'Kesehatan', ic: '🏥', nama: 'Fasilitas Kesehatan', jenis: ['RSUD', 'Rumah Sakit', 'Puskesmas', 'Pustu', 'Klinik'], def: ['Puskesmas'], warna: '#E11D48' },
     pendidikan: { t: 'Pendidikan', ic: '🎓', nama: 'Fasilitas Pendidikan', jenis: ['KB', 'TK', 'SD', 'MI', 'SMP', 'MTs', 'SMA', 'MA', 'SMK', 'SLB', 'PKBM', 'TPA', 'SPS', 'RA', 'Perguruan Tinggi'], def: ['SMA', 'SMK', 'MA'], warna: '#2563EB' }
   };
-  const WARNA = { 'RSUD': '#DC2626', 'Rumah Sakit': '#EA580C', 'Puskesmas': '#16A34A', 'Pustu': '#0891B2', 'Klinik': '#7C3AED',
-    'KB': '#D97706', 'TK': '#EA580C', 'TPA': '#C2410C', 'SPS': '#B45309', 'RA': '#CA8A04', 'SD': '#16A34A', 'MI': '#15803D', 'SMP': '#2563EB', 'MTs': '#1D4ED8',
-    'SMA': '#7C3AED', 'MA': '#6D28D9', 'SMK': '#DB2777', 'SLB': '#0891B2', 'PKBM': '#78716C', 'Perguruan Tinggi': '#0F172A' };
+  const JP = { kab: 'Kabupaten', kec: 'Kecamatan', desa: 'Desa', sls: 'SLS (RT/RW)' };
+  const WARNA = { 'RSUD': '#DC2626', 'Rumah Sakit': '#EA580C', 'Puskesmas': '#16A34A', 'Pustu': '#0891B2', 'Klinik': '#7C3AED', 'KB': '#D97706', 'TK': '#EA580C', 'TPA': '#C2410C', 'SPS': '#B45309', 'RA': '#CA8A04', 'SD': '#16A34A', 'MI': '#15803D', 'SMP': '#2563EB', 'MTs': '#1D4ED8', 'SMA': '#7C3AED', 'MA': '#6D28D9', 'SMK': '#DB2777', 'SLB': '#0891B2', 'PKBM': '#78716C', 'Perguruan Tinggi': '#0F172A' };
   const SINGKAT = { 'Rumah Sakit': 'RS', 'Puskesmas': 'PKM', 'Perguruan Tinggi': 'PT' };
   const fcolor = j => WARNA[j] || '#64748B', fabbr = j => SINGKAT[j] || j;
   const pc = v => { const n = typeof v === 'number' ? v : parseFloat(String(v == null ? '' : v).replace(',', '.')); return isFinite(n) ? n : null; };
-
-  /* ---------- ikon: pin berwarna + bangunan (rumah sakit atau sekolah) ---------- */
   function pinSVG(g, color, w) {
     const h = Math.round(w * 46 / 36);
     const inner = g === 'kesehatan'
@@ -1470,18 +1596,16 @@ go('peta'); schedule();
   const ICONS = {};
   const iconFor = (g, j) => ICONS[g + '|' + j] || (ICONS[g + '|' + j] = L.divIcon({ className: 'fmk', html: pinSVG(g, fcolor(j), 30) + '<span class="fbadge" style="background:' + fcolor(j) + '">' + esc(fabbr(j)) + '</span>', iconSize: [30, 38], iconAnchor: [15, 38], popupAnchor: [0, -34] }));
 
-  let FAS = null, FM = null, FG = null, FB = {}, FKL = null;
+  let FAS = null, FM = null, FG = null, FB = {}, FBL = null, FSEL = null, FKAB = null, FSLS = null, slsBusy = false, slsQ = [], OPEN = null;
   const KS = { n: { color: '#64748B', weight: 1.2, opacity: .8, fill: false }, sel: { color: '#4F46E5', weight: 3.2, opacity: 1, fill: true, fillColor: '#4F46E5', fillOpacity: .1 } };
+  const slsTeks = s => s ? ((s.t && s.r ? 'RT ' + s.r + ' / RW ' + s.w : (s.n || '')) + (s.u ? ' · ' + s.u : '')) : '';
 
-  /* ---------- data ---------- */
   function prepFas(d) {
     const recs = [], errs = [];
     ['kesehatan', 'pendidikan'].forEach(g => {
-      const t = d && d[g]; if (!t) return;
-      if (t.error) errs.push(t.error);
+      const t = d && d[g]; if (!t) return; if (t.error) errs.push(t.error);
       (t.rows || []).forEach(r => {
-        const o = { g: g, i: recs.length };
-        t.cols.forEach((c, k) => { o[c] = r[k]; });
+        const o = { g: g, i: recs.length }; t.cols.forEach((c, k) => { o[c] = r[k]; });
         o.nama = String(o.nama == null ? '' : o.nama); o.subkategori = String(o.subkategori == null ? '' : o.subkategori);
         o.lat = pc(o.lintang); o.lng = pc(o.bujur); recs.push(o);
       });
@@ -1495,25 +1619,46 @@ go('peta'); schedule();
   function assign(withGeo) {
     const K = withGeo ? PD.kec.features : [], D = withGeo ? PD.desa.features : [];
     FAS.recs.forEach(o => {
-      const sd = o.desa; o.kec = ''; o.desa = ''; o.ok = false; o.why = '';
+      const sd = o.desa; o.kec = ''; o.desa = ''; o.kk = ''; o.dk = ''; o.ok = false; o.why = ''; o.sls = null; o.slsDone = false;
       if (o.lat == null || o.lng == null || o.lat === 0 || o.lng === 0) { o.why = 'Koordinat kosong atau tidak valid'; return; }
       if (withGeo) {
         const k = featureAt(K, o.lat, o.lng);
         if (!k) { o.why = 'Koordinat berada di luar Kabupaten Ngawi'; return; }
-        o.kec = k.properties.K; const dd = featureAt(D, o.lat, o.lng); o.desa = dd ? dd.properties.D : String(sd || '');
+        o.kec = k.properties.K; o.kk = k.properties.k; const dd = featureAt(D, o.lat, o.lng);
+        if (dd) { o.desa = dd.properties.D; o.dk = dd.properties.d; o.kk = dd.properties.k; } else o.desa = String(sd || '');
       }
       o.ok = true;
     });
     FAS.geo = withGeo; FAS.ready = true;
   }
+  function assignSls() {
+    if (!FAS || !FSLS) return;
+    const F = FSLS.features, recs = FAS.recs.filter(o => o.ok); let i = 0;
+    const step = () => {
+      const end = Math.min(i + 150, recs.length);
+      for (; i < end; i++) { const f = featureAt(F, recs[i].lat, recs[i].lng); recs[i].sls = f ? f.properties : null; recs[i].slsDone = true; }
+      if (i < recs.length) setTimeout(step, 0);
+      else if (OPEN && OPEN._m && OPEN._m.isPopupOpen && OPEN._m.isPopupOpen()) OPEN._m.setPopupContent(popFas(OPEN));
+    };
+    step();
+  }
+  function loadSls(cb) {
+    if (FSLS) { if (cb) cb(); return; }
+    if (cb) slsQ.push(cb);
+    if (slsBusy) return; slsBusy = true;
+    google.script.run.withSuccessHandler(d => {
+      FSLS = JSON.parse(d); FSLS.features.forEach(f => { if (f.properties.w === undefined) parseSls(f.properties); });
+      slsBusy = false; assignSls(); const q = slsQ; slsQ = []; q.forEach(fn => fn());
+    }).withFailureHandler(() => { slsBusy = false; slsQ = []; if (cur === ID && $('msg')) $('msg').innerHTML = ''; }).getPeta();
+  }
   function loadFas(force) {
-    if (FAS && FAS.ready && force !== true) return;   // data besar: tidak dimuat ulang otomatis
+    if (FAS && FAS.ready && force !== true) return;
     const b = $('bRef'); if (b) b.disabled = true;
     const fin = () => { if (b) b.disabled = false; hideSplash(); };
     google.script.run.withSuccessHandler(d => {
       fin(); const nf = prepFas(d); if (cur !== ID) { FAS = nf; return; }
       setPill('ok'); $('sheetName').textContent = 'Terhubung ke tab Fasilitas Kesehatan dan Fasilitas Pendidikan';
-      const go1 = withGeo => { FAS = nf; assign(withGeo); SH[ID] = FAS; if (cur === ID) { $('msg').innerHTML = ''; ST.fkSig = null; updFas(); } };
+      const go1 = withGeo => { FAS = nf; assign(withGeo); SH[ID] = FAS; if (FSLS) assignSls(); if (cur === ID) { $('msg').innerHTML = ''; ST.fkSig = null; updFas(); if (!FSLS) setTimeout(() => { if (cur === ID) loadSls(() => { if (cur === ID) updFas(); }); }, 400); } };
       loadSet('kab', () => loadSet('kec', () => loadSet('desa', () => go1(true), () => go1(false)), () => go1(false)), () => go1(false));
     }).withFailureHandler(e => {
       fin(); setPill('err', e.message);
@@ -1521,7 +1666,6 @@ go('peta'); schedule();
     }).getFasilitas();
   }
 
-  /* ---------- peta ---------- */
   function zinfo() { if (!FM) return; const z = $('fZoom'); if (z) z.textContent = (+FM.getZoom()).toFixed(1); FM.getContainer().classList.toggle('fm-lab', FM.getZoom() >= 15); }
   function ensureFMap() {
     if (FM) return;
@@ -1529,8 +1673,7 @@ go('peta'); schedule();
     FB = { 'Peta jalan': L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19, attribution: '© OpenStreetMap' }),
            'Citra satelit': L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', { maxZoom: 19, attribution: 'Esri, Maxar' }) };
     FB[ST.fbase || 'Peta jalan'].addTo(FM);
-    FKL = PD.kec ? L.geoJSON(PD.kec, { style: KS.n, interactive: false }).addTo(FM) : null;
-    if (PD.kab) { const kb = L.geoJSON(PD.kab, { style: { color: '#4338CA', weight: 2.5, fill: false }, interactive: false }).addTo(FM); try { FAS.kabBounds = kb.getBounds(); } catch (e) {} }
+    if (PD.kab) { FKAB = L.geoJSON(PD.kab, { style: { color: '#4338CA', weight: 2.5, fill: false }, interactive: false }).addTo(FM); try { FAS.kabBounds = FKAB.getBounds(); } catch (e) {} }
     FG = L.markerClusterGroup
       ? L.markerClusterGroup({ showCoverageOnHover: false, maxClusterRadius: 45, disableClusteringAtZoom: 17, chunkedLoading: true,
           iconCreateFunction: c => L.divIcon({ className: 'fcl-w', html: '<div class="fcl" style="background:' + GRUP[ST.fgrup].warna + '">' + c.getChildCount() + '</div>', iconSize: [40, 40] }) })
@@ -1540,23 +1683,37 @@ go('peta'); schedule();
     FM.on('popupopen', () => document.body.classList.add('popen')); FM.on('popupclose', () => document.body.classList.remove('popen'));
     zinfo(); setTimeout(() => { if (FM) FM.invalidateSize(); }, 200);
   }
-  function fPanel(id) { ['fLegP', 'fBaseP'].forEach(x => { const e = $(x); if (e) e.style.display = (x === id && e.style.display === 'none') ? '' : 'none'; }); }
-  function styleKec(selK) {
-    if (!FKL) return null; let b = null;
-    FKL.eachLayer(l => {
-      const n = l.feature && l.feature.properties && l.feature.properties.K, s = selK.includes(n);
-      l.setStyle(s ? KS.sel : KS.n); if (l.unbindTooltip) l.unbindTooltip();
-      if (s) { l.bindTooltip(n, { permanent: true, direction: 'center', className: 'fkt' }); const lb = l.getBounds(); b = b ? b.extend(lb) : L.latLngBounds(lb.getSouthWest(), lb.getNorthEast()); if (l.bringToFront) l.bringToFront(); }
-    });
-    return b;
+  function fPanel(id) { ['fLegP', 'fBaseP', 'fJnsP'].forEach(x => { const e = $(x); if (e) e.style.display = (x === id && e.style.display === 'none') ? '' : 'none'; }); }
+  function drawBoundary(selK, selD) {
+    const j = ST.fjp, sig = [j, selK.join('|'), selD.join('|'), j === 'sls' && FSLS ? 1 : 0].join('#');
+    if (ST.fbSig === sig) return ST.fbBounds || null;
+    ST.fbSig = sig;
+    if (FBL) { FM.removeLayer(FBL); FBL = null; } if (FSEL) { FM.removeLayer(FSEL); FSEL = null; }
+    const data = j === 'kec' ? PD.kec : j === 'desa' ? PD.desa : j === 'sls' ? FSLS : null;
+    if (data) {
+      const thin = j === 'sls' ? { color: '#64748B', weight: .6, opacity: .85, fill: false } : j === 'desa' ? { color: '#94A3B8', weight: 1, opacity: .9, fill: false } : KS.n;
+      FBL = L.geoJSON(data, { interactive: false, style: thin, filter: f => j === 'kec' || !selK.length || selK.includes(f.properties.K) }).addTo(FM);
+    }
+    let hs = [];
+    if (j !== 'kab') {
+      if (selD.length && PD.desa) hs = PD.desa.features.filter(f => selD.includes(f.properties.k + '|' + f.properties.d));
+      else if (selK.length && PD.kec) hs = PD.kec.features.filter(f => selK.includes(f.properties.K));
+    }
+    let b = null;
+    if (hs.length) {
+      FSEL = L.geoJSON({ type: 'FeatureCollection', features: hs }, { interactive: false, style: KS.sel, onEachFeature: (f, l) => { l.bindTooltip(f.properties.D || f.properties.K, { permanent: true, direction: 'center', className: 'fkt' }); } }).addTo(FM);
+      b = FSEL.getBounds();
+    }
+    return (ST.fbBounds = b);
   }
   function popFas(o) {
     const row = (k, v) => (v === '' || v == null) ? '' : '<tr><td class="fk">' + k + '</td><td>' + esc(v) + '</td></tr>';
     const wil = [o.desa, o.kec ? 'Kec. ' + o.kec : ''].filter(Boolean).join(', ');
     const n = v => (v === '' || v == null) ? '' : fmt(Number(v));
+    const sl = o.slsDone ? (o.sls ? row('Berada di SLS', slsTeks(o.sls)) + row('Kode SLS', o.sls.i) : row('Berada di SLS', 'Tidak teridentifikasi')) : (FSLS || !FAS.geo ? '' : row('Berada di SLS', 'Memuat…'));
     const det = o.g === 'kesehatan'
-      ? row('Alamat', o.alamat) + row('Wilayah', wil) + row('Telepon', o.telepon) + row('Kelas RS', o.kelas_rs) + row('Jenis RS', o.jenis_rs) + row('Kode', o.id)
-      : row('NPSN / Kode', o.id) + row('Bentuk', o.bentuk_pendidikan) + row('Alamat', o.alamat) + row('Wilayah', wil) + row('Akreditasi', o.akreditasi) + row('Peserta didik', n(o.peserta_didik)) + row('PTK', n(o.ptk)) + row('Rombel', n(o.rombel));
+      ? row('Alamat', o.alamat) + row('Wilayah', wil) + sl + row('Telepon', o.telepon) + row('Kelas RS', o.kelas_rs) + row('Jenis RS', o.jenis_rs)
+      : row('NPSN', o.id) + row('Bentuk', o.bentuk_pendidikan) + row('Alamat', o.alamat) + row('Wilayah', wil) + sl + row('Akreditasi', o.akreditasi) + row('Peserta didik', n(o.peserta_didik)) + row('PTK', n(o.ptk)) + row('Rombel', n(o.rombel));
     const su = safeUrl(o.url);
     return '<div class="pp"><b>' + esc(o.nama) + '</b><br><span class="fbdg" style="background:' + fcolor(o.subkategori) + '">' + esc(o.subkategori) + '</span>' + (o.status ? ' <span class="mut">' + esc(o.status) + '</span>' : '') +
       '<table class="ftab">' + det + '</table><div class="mut" style="margin-top:4px">' + o.lat.toFixed(5) + ', ' + o.lng.toFixed(5) + '</div>' +
@@ -1567,6 +1724,7 @@ go('peta'); schedule();
     if (o._m) return o._m;
     const m = L.marker([o.lat, o.lng], { icon: iconFor(o.g, o.subkategori), keyboard: false, riseOnHover: true });
     m.bindPopup(() => popFas(o), { maxWidth: 320 }); m.bindTooltip(o.nama + ' · ' + o.subkategori, { direction: 'top', offset: [0, -34] });
+    m.on('popupopen', () => { OPEN = o; }); m.on('popupclose', () => { if (OPEN === o) OPEN = null; });
     return (o._m = m);
   }
   function showMarker(o) {
@@ -1574,8 +1732,6 @@ go('peta'); schedule();
     const mf = $('mapfull'); if (mf) mf.scrollIntoView({ behavior: 'smooth', block: 'start' });
     FM.setView([o.lat, o.lng], 17); setTimeout(() => { if (o._m) o._m.openPopup(); }, 250);
   }
-
-  /* ---------- tampilan ---------- */
   function insFas(rows, unm, g, J, K) {
     if (!rows.length) return { head: 'Belum ada fasilitas yang ditampilkan. Buka panel di bagian bawah peta lalu pilih jenis fasilitas.', cards: [] };
     const head = 'Menampilkan ' + bd(fmt(rows.length) + ' fasilitas') + ' ' + g.toLowerCase() + ' di Kabupaten Ngawi, terbanyak ' + bd(J[0][0]) + ' (' + fmt(J[0][1]) + ')' + (K.length ? ' dan paling banyak di Kecamatan ' + bd(K[0][0]) + ' (' + fmt(K[0][1]) + ').' : '.');
@@ -1589,31 +1745,33 @@ go('peta'); schedule();
   }
   function updFas() {
     if (cur !== ID || !FAS || !FAS.ready || !$('fmap')) return;
-    Chart.defaults.color = getComputedStyle(document.body).getPropertyValue('--muted').trim();
-    Chart.defaults.font.family = '"Plus Jakarta Sans", sans-serif';
-    const g = ST.fgrup, G = GRUP[g], recs = FAS.recs.filter(o => o.g === g);
+    Chart.defaults.color = getComputedStyle(document.body).getPropertyValue('--muted').trim(); Chart.defaults.font.family = '"Plus Jakarta Sans", sans-serif';
+    const g = ST.fgrup, G = GRUP[g], jp = ST.fjp, recs = FAS.recs.filter(o => o.g === g);
     const present = [...new Set(recs.map(o => o.subkategori))];
     const jenisAll = G.jenis.filter(j => present.includes(j)).concat(present.filter(j => !G.jenis.includes(j)).sort());
     ST.fjAll = jenisAll;
     if (!ST.fjenis) { const d = G.def.filter(j => jenisAll.includes(j)); ST.fjenis = new Set(d.length ? d : jenisAll.slice(0, 1)); }
+    const useK = jp !== 'kab', useD = jp === 'desa' || jp === 'sls';
     const kecs = FAS.geo ? [...new Set(PD.kec.features.map(f => f.properties.K))].sort((a, b) => a.localeCompare(b)) : [];
-    const selK = (ST.sel.fk || []).filter(k => kecs.includes(k));
-    msSet('fk', kecs.map(k => ({ v: k, t: k })), selK, 'Semua kecamatan', 'kecamatan');
-    const mk0 = $('ms-fk'); if (mk0) mk0.style.display = kecs.length ? '' : 'none';
+    const selK = useK ? (ST.sel.fk || []).filter(k => kecs.includes(k)) : [];
+    const des = FAS.geo && PD.desa ? [...new Map(PD.desa.features.filter(f => !selK.length || selK.includes(f.properties.K)).map(f => [f.properties.k + '|' + f.properties.d, f.properties.D + (selK.length === 1 ? '' : ' (' + f.properties.K + ')')]))].sort((a, b) => a[1].localeCompare(b[1])) : [];
+    const selD = useD ? (ST.sel.fd || []).filter(v => des.some(d => d[0] === v)) : [];
+    msSet('fk', kecs.map(k => ({ v: k, t: k })), selK, 'Semua kecamatan', 'kecamatan'); msSet('fd', des.map(d => ({ v: d[0], t: d[1] })), selD, 'Semua desa', 'desa');
+    const m1 = $('ms-fk'), m2 = $('ms-fd'); if (m1) m1.style.display = useK && kecs.length ? '' : 'none'; if (m2) m2.style.display = useD && des.length ? '' : 'none';
     const q = (ST.fq || '').toLowerCase().trim();
     const hit = o => !q || (o.nama + ' ' + (o.alamat || '') + ' ' + (o.kec || '') + ' ' + (o.desa || '')).toLowerCase().includes(q);
-    const base = recs.filter(o => hit(o) && (!selK.length || (o.ok && selK.includes(o.kec))));
+    const base = recs.filter(o => hit(o) && (!selK.length || (o.ok && selK.includes(o.kec))) && (!selD.length || (o.ok && selD.includes(o.kk + '|' + o.dk))));
     const cnt = {}; base.forEach(o => { if (o.ok) cnt[o.subkategori] = (cnt[o.subkategori] || 0) + 1; });
     const rows = base.filter(o => o.ok && ST.fjenis.has(o.subkategori)).sort((a, b) => a.nama.localeCompare(b.nama));
-    const unm = selK.length ? [] : recs.filter(o => !o.ok && ST.fjenis.has(o.subkategori) && hit(o));
+    const unm = (selK.length || selD.length) ? [] : recs.filter(o => !o.ok && ST.fjenis.has(o.subkategori) && hit(o));
     const byJ = {}, byK = {}; rows.forEach(o => { byJ[o.subkategori] = (byJ[o.subkategori] || 0) + 1; if (o.kec) byK[o.kec] = (byK[o.kec] || 0) + 1; });
     const J = Object.entries(byJ).sort((a, b) => b[1] - a[1]), K = Object.entries(byK).sort((a, b) => b[1] - a[1]);
 
-    // kontrol dan teks
     document.querySelectorAll('#fGrupBar button').forEach(b => b.classList.toggle('on', b.dataset.g === g));
-    $('fSub').textContent = G.nama; $('fSheetT').textContent = 'Infrastruktur · ' + G.nama;
-    $('fPmt').textContent = ST.fjenis.size ? [...ST.fjenis].map(fabbr).join(', ') + ' · ' + fmt(rows.length) + ' titik · ketuk untuk memilih jenis dan kecamatan' : 'Ketuk untuk memilih jenis fasilitas';
-    $('fWil').textContent = 'Kecamatan: ' + (!selK.length ? 'Semua' : selK.length <= 2 ? selK.join(', ') : selK.length + ' dipilih');
+    document.querySelectorAll('#fJnsP .jbtn').forEach(b => b.classList.toggle('on', b.dataset.j === jp));
+    $('fSub').textContent = 'Peta Infrastruktur · ' + G.nama; $('fSheetT').textContent = 'Peta Infrastruktur · ' + G.nama;
+    $('fPmt').textContent = (ST.fjenis.size ? [...ST.fjenis].map(fabbr).join(', ') + ' · ' + fmt(rows.length) + ' titik' : 'Belum ada jenis dipilih') + ' · Batas: ' + JP[jp] + ' · ketuk untuk memilih jenis dan wilayah';
+    $('fWil').textContent = 'Wilayah: ' + (selD.length ? (selD.length === 1 ? (des.find(d => d[0] === selD[0]) || [0, '1 desa'])[1] : selD.length + ' desa') : selK.length ? (selK.length <= 2 ? selK.join(', ') : selK.length + ' kecamatan') : 'Semua');
     $('fPts').textContent = 'Titik: ' + fmt(rows.length);
     const wu = $('fUnm'); wu.style.display = unm.length ? '' : 'none'; wu.textContent = '⚠️ ' + fmt(unm.length) + ' belum terpetakan';
     $('fChips').innerHTML = jenisAll.map(j => '<button type="button" class="fchip' + (ST.fjenis.has(j) ? ' on' : '') + '" data-j="' + esc(j) + '">' + pinSVG(g, fcolor(j), 16) + esc(j) + ' <b>' + fmt(cnt[j] || 0) + '</b></button>').join('') +
@@ -1622,40 +1780,35 @@ go('peta'); schedule();
     $('fLg').innerHTML = (sel.length ? sel.map(j => '<div class="flg">' + pinSVG(g, fcolor(j), 20) + '<span>' + esc(j) + (fabbr(j) !== j ? ' <small class="mut">(' + esc(fabbr(j)) + ')</small>' : '') + '</span><b>' + fmt(cnt[j] || 0) + '</b></div>').join('') : '<span class="mut">Belum ada jenis yang dipilih.</span>') +
       '<div class="mut" style="font-size:11.5px;line-height:1.4;margin-top:2px">Ikon ' + (g === 'kesehatan' ? 'bangunan rumah sakit' : 'bangunan sekolah') + '. Warna menunjukkan jenis; singkatan tampil saat peta diperbesar.</div>';
 
-    // peta
     ensureFMap();
     FG.clearLayers(); const ms = rows.map(marker);
     if (FG.addLayers) FG.addLayers(ms); else ms.forEach(m => FG.addLayer(m));
-    const sig = selK.join('|'), bnd = styleKec(selK);
-    if (ST.fkSig !== sig) {   // hanya saat filter kecamatan berubah: tampilkan batas kecamatan, bukan zoom ke titik
-      ST.fkSig = sig;
-      if (bnd) FM.fitBounds(bnd, { padding: [30, 30] }); else if (FAS.kabBounds) FM.fitBounds(FAS.kabBounds, { padding: [20, 20] });
-    }
+    if (jp === 'sls' && !FSLS) { if ($('msg')) $('msg').innerHTML = '<div class="card"><div class="load"></div><div class="load" style="width:60%"></div><small class="mut">Memuat batas SLS…</small></div>'; loadSls(() => { if (cur === ID) { $('msg').innerHTML = ''; updFas(); } }); }
+    const bnd = drawBoundary(selK, selD), sig = selK.join('|') + '#' + selD.join('|');
+    if (ST.fkSig !== sig) { ST.fkSig = sig; if (bnd) FM.fitBounds(bnd, { padding: [30, 30] }); else if (FAS.kabBounds) FM.fitBounds(FAS.kabBounds, { padding: [20, 20] }); }
 
-    // bagian bawah peta
     $('fKpi').innerHTML = kpiHTML([
       ['FASILITAS DITAMPILKAN', fmt(rows.length), G.t + ' · ' + ST.fjenis.size + ' jenis dipilih', G.ic, ''],
       ['JENIS TERBANYAK', J.length ? J[0][0] : '–', J.length ? fmt(J[0][1]) + ' titik' : '', '🏷️', ''],
       ['KECAMATAN TERBANYAK', K.length ? K[0][0] : '–', K.length ? fmt(K[0][1]) + ' titik' : '', '📍', ''],
       ['BELUM DAPAT DIPETAKAN', fmt(unm.length), 'koordinat kosong atau di luar Ngawi', '⚠️', unm.length ? 'down' : '']]);
-    $('fct1').textContent = 'Jumlah Fasilitas per Jenis'; $('fct2').textContent = 'Jumlah Fasilitas per Kecamatan';
+    $('fct1').textContent = 'Jumlah ' + G.nama + ' per Jenis'; $('fct2').textContent = 'Jumlah ' + G.nama + ' per Kecamatan';
     mk('fj', 'fc1', { type: 'bar', data: { labels: J.map(a => a[0]), datasets: [{ data: J.map(a => a[1]), borderRadius: 3, backgroundColor: J.map(a => fcolor(a[0])) }] },
       options: baseOpts({ indexAxis: 'y', scales: scales(true), plugins: { legend: { display: false }, tooltip: { callbacks: { label: c => fmt(c.parsed.x) + ' fasilitas' } } } }) });
     mk('fk', 'fc2', { type: 'bar', data: { labels: K.map(a => a[0]), datasets: [{ data: K.map(a => a[1]), borderRadius: 3, backgroundColor: G.warna }] },
       options: baseOpts({ indexAxis: 'y', scales: scales(true), plugins: { legend: { display: false }, tooltip: { callbacks: { label: c => fmt(c.parsed.x) + ' fasilitas' } } } }) });
-    const fw = $('fWarnCard');
-    fw.style.display = unm.length ? '' : 'none';
+    $('fWarnCard').style.display = unm.length ? '' : 'none';
     $('fWarn').innerHTML = unm.length ? '<details id="fDet"><summary>⚠️ ' + fmt(unm.length) + ' fasilitas belum dapat ditampilkan di peta (klik untuk melihat daftar)</summary><div class="tw" style="margin-top:8px;max-height:260px"><table><thead><tr><th class="l">Nama</th><th class="l">Jenis</th><th class="l">Alasan</th></tr></thead><tbody>' +
       unm.slice(0, 300).map(o => '<tr><td class="l">' + esc(o.nama) + '</td><td class="l">' + esc(o.subkategori) + '</td><td class="l">' + esc(o.why) + '</td></tr>').join('') + '</tbody></table></div></details>' : '';
     $('fNote').innerHTML = (g === 'kesehatan'
       ? 'Sumber: RS Online Kementerian Kesehatan (RSUD dan rumah sakit) serta OpenStreetMap (Puskesmas, Pustu, dan klinik; pengambilan data 23 Agustus 2026). Data OpenStreetMap berasal dari pemetaan komunitas sehingga belum tentu mencakup seluruh fasilitas.'
       : 'Sumber: Referensi Data Pendidikan Kemendikdasmen dan Kemenag. Titik yang koordinatnya kosong atau berada di luar Kabupaten Ngawi tidak ditampilkan.') +
-      (FAS.geo ? ' Kecamatan dan desa pada popup dihitung otomatis dari koordinat titik.' : ' Pencocokan kecamatan dan desa tidak tersedia karena berkas peta wilayah gagal dimuat.');
+      (FAS.geo ? ' Kecamatan, desa, dan SLS pada popup dihitung otomatis dari koordinat titik.' : ' Pencocokan kecamatan, desa, dan SLS tidak tersedia karena berkas peta wilayah gagal dimuat.');
     $('fTblCard').style.display = ST.ftbl ? '' : 'none';
     if (ST.ftbl) {
-      const kes = g === 'kesehatan';
-      const cols = kes ? [['Nama', o => o.nama], ['Jenis', o => o.subkategori], ['Kecamatan', o => o.kec], ['Desa/Kel.', o => o.desa], ['Alamat', o => o.alamat], ['Telepon', o => o.telepon]]
-                       : [['Nama', o => o.nama], ['Jenjang', o => o.subkategori], ['Status', o => o.status], ['Kecamatan', o => o.kec], ['Desa/Kel.', o => o.desa], ['Alamat', o => o.alamat], ['Peserta didik', o => o.peserta_didik === '' ? '' : fmt(Number(o.peserta_didik))]];
+      const kes = g === 'kesehatan', sl = o => o.slsDone ? slsTeks(o.sls) : '';
+      const cols = kes ? [['Nama', o => o.nama], ['Jenis', o => o.subkategori], ['Kecamatan', o => o.kec], ['Desa/Kel.', o => o.desa], ['SLS', sl], ['Kode SLS', o => o.sls ? o.sls.i : ''], ['Alamat', o => o.alamat], ['Telepon', o => o.telepon]]
+                       : [['Nama', o => o.nama], ['Jenjang', o => o.subkategori], ['Status', o => o.status], ['Kecamatan', o => o.kec], ['Desa/Kel.', o => o.desa], ['SLS', sl], ['Kode SLS', o => o.sls ? o.sls.i : ''], ['Alamat', o => o.alamat], ['Peserta didik', o => o.peserta_didik === '' ? '' : fmt(Number(o.peserta_didik))]];
       $('fTbl').innerHTML = '<table><thead><tr>' + cols.map(c => '<th class="l">' + c[0] + '</th>').join('') + '</tr></thead><tbody>' +
         rows.slice(0, 500).map(o => '<tr data-fi="' + o.i + '" style="cursor:pointer" title="Klik untuk menampilkan di peta">' + cols.map(c => '<td class="l">' + esc(c[1](o) == null ? '' : c[1](o)) + '</td>').join('') + '</tr>').join('') + '</tbody></table>' +
         (rows.length > 500 ? '<div class="empty">Menampilkan 500 dari ' + fmt(rows.length) + ' baris. Gunakan filter atau pencarian untuk mempersempit.</div>' : '');
@@ -1663,31 +1816,23 @@ go('peta'); schedule();
     ST.frows = rows;
     renderAI(insFas(rows, unm, G.t, J, K));
   }
-  function exportFas() {
-    const rows = ST.frows || []; if (!rows.length) return;
-    const head = ['Nama', 'Jenis', 'Status', 'Kecamatan', 'Desa/Kelurahan', 'Alamat', 'Telepon', 'Kode/NPSN', 'Lintang', 'Bujur', 'Sumber'];
-    const body = rows.map(o => [o.nama, o.subkategori, o.status || '', o.kec, o.desa, o.alamat || '', o.telepon || '', o.id || '', o.lat, o.lng, o.sumber || '']);
-    const csv = '\uFEFF' + [head].concat(body).map(r => r.map(c => '"' + String(c == null ? '' : c).replace(/"/g, '""') + '"').join(';')).join('\r\n');
-    const name = 'infrastruktur-' + ST.fgrup + '-ngawi';
-    if (window.AndroidBridge && AndroidBridge.saveFile) { AndroidBridge.saveFile(name + '.csv', 'text/csv', csv); return; }
-    const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([csv], { type: 'text/csv;charset=utf-8' })); a.download = name + '.csv'; a.click();
-  }
   function pageHTML() {
-    const SV = { rute: '<svg viewBox="0 0 24 24"><path d="M12 2l7 19-7-4-7 4z" fill="#EF4444"/></svg>', lap: '<svg viewBox="0 0 24 24" fill="none" stroke="#4F46E5" stroke-width="2" stroke-linejoin="round"><path d="M12 3l9 5-9 5-9-5z" fill="#C7D2FE"/><path d="M3 12l9 5 9-5M3 16l9 5 9-5"/></svg>' };
+    const rute = '<svg viewBox="0 0 24 24"><path d="M12 2l7 19-7-4-7 4z" fill="#EF4444"/></svg>', lap = '<svg viewBox="0 0 24 24" fill="none" stroke="#4F46E5" stroke-width="2" stroke-linejoin="round"><path d="M12 3l9 5-9 5-9-5z" fill="#C7D2FE"/><path d="M3 12l9 5 9-5M3 16l9 5 9-5"/></svg>';
+    const jns = '<svg viewBox="0 0 24 24" fill="none" stroke="#7C3AED" stroke-width="2" stroke-linejoin="round"><path d="M12 3l8 6-3 10H7L4 9z" fill="#EDE9FE"/></svg>';
     return '<div class="mapfull" id="mapfull"><div class="map" id="fmap"></div>' +
-      '<div class="mtop"><div class="logo" role="img" aria-label="Logo SIPADU Ngawi"></div><div class="mtt"><b>SIPADU NGAWI</b><small id="fSub">Infrastruktur</small></div><button type="button" class="mmenu" aria-label="Buka menu" onclick="drawer(true)">☰</button></div>' +
+      '<div class="mtop"><div class="logo" role="img" aria-label="Logo SIPADU Ngawi"></div><div class="mtt"><b>SIPADU NGAWI</b><small id="fSub">Peta Infrastruktur</small></div><button type="button" class="mmenu" aria-label="Buka menu" onclick="drawer(true)">☰</button></div>' +
       '<div class="mleft"><div id="fGrupBar" style="display:flex;gap:8px;flex-wrap:wrap"><button type="button" class="chip2 btn2" data-g="kesehatan">🏥 Kesehatan</button><button type="button" class="chip2 btn2" data-g="pendidikan">🎓 Pendidikan</button></div>' +
-        '<div class="chip2">📍 <span id="fWil">Kecamatan: Semua</span></div><div class="chip2">🔎 <span id="fPts">Titik: –</span> · Zoom: <span id="fZoom">–</span></div>' +
+        '<div class="chip2">📍 <span id="fWil">Wilayah: Semua</span></div><div class="chip2">🔎 <span id="fPts">Titik: –</span> · Zoom: <span id="fZoom">–</span></div>' +
         '<button type="button" class="chip2 btn2" id="fUnm" style="display:none"></button>' +
         '<button type="button" class="chip2 btn2" id="fLegBtn">🎨 Legenda</button><div class="mpanel" id="fLegP" style="display:none"><b>LEGENDA</b><div class="flgl" id="fLg"></div></div></div>' +
-      '<div class="mright"><button type="button" class="rbtn" id="fBack" title="Kembali ke Kabupaten Ngawi" aria-label="Kembali ke Kabupaten Ngawi">' + SV.rute + '</button>' +
-        '<div class="rwrap"><button type="button" class="rbtn" id="fBaseBtn" title="Peta dasar" aria-label="Peta dasar">' + SV.lap + '</button>' +
-        '<div class="mpanel rp" id="fBaseP" style="display:none"><b>PETA DASAR</b><label><input type="radio" name="fbase" value="Peta jalan" checked> Peta jalan</label><label><input type="radio" name="fbase" value="Citra satelit"> Citra satelit</label></div></div>' +
+      '<div class="mright"><button type="button" class="rbtn" id="fBack" title="Kembali ke Kabupaten Ngawi" aria-label="Kembali ke Kabupaten Ngawi">' + rute + '</button>' +
+        '<div class="rwrap"><button type="button" class="rbtn" id="fBaseBtn" title="Peta dasar" aria-label="Peta dasar">' + lap + '</button><div class="mpanel rp" id="fBaseP" style="display:none"><b>PETA DASAR</b><label><input type="radio" name="fbase" value="Peta jalan" checked> Peta jalan</label><label><input type="radio" name="fbase" value="Citra satelit"> Citra satelit</label></div></div>' +
+        '<div class="rwrap"><button type="button" class="rbtn" id="fJnsBtn" title="Jenis peta" aria-label="Jenis peta">' + jns + '</button><div class="mpanel rp" id="fJnsP" style="display:none"><b>JENIS PETA</b>' + Object.keys(JP).map(k => '<button type="button" class="jbtn" data-j="' + k + '">' + JP[k] + '</button>').join('') + '</div></div>' +
         '<button type="button" class="rbtn zb" id="fZin" aria-label="Perbesar">+</button><button type="button" class="rbtn zb" id="fZout" aria-label="Perkecil">−</button></div>' +
       '<div id="msg" class="mmsg"></div>' +
-      '<div class="mbottom"><div class="mstack"><section class="msheet" id="fSheet"><button type="button" class="mshead" id="fHead" aria-expanded="false"><span class="mi">🏗️</span><span class="mht"><b id="fSheetT">Infrastruktur</b><small id="fPmt">Memuat…</small></span><span class="chev">▴</span></button>' +
+      '<div class="mbottom"><div class="mstack"><section class="msheet" id="fSheet"><button type="button" class="mshead" id="fHead" aria-expanded="false"><span class="mi">🏢</span><span class="mht"><b id="fSheetT">Peta Infrastruktur</b><small id="fPmt">Memuat…</small></span><span class="chev">▴</span></button>' +
         '<div class="msbody"><div class="row"><b>JENIS FASILITAS:</b></div><div class="fchips" id="fChips"></div>' +
-        '<div class="row" style="margin-top:12px">' + msHTML('fk', 'Kecamatan') + '<input id="fCari" class="grow" type="search" placeholder="Cari nama atau alamat fasilitas…"></div>' +
+        '<div class="row" style="margin-top:12px">' + msHTML('fk', 'Kecamatan') + msHTML('fd', 'Desa') + '<input id="fCari" class="grow" type="search" placeholder="Cari nama atau alamat fasilitas…"></div>' +
         '<div class="row" style="margin-top:12px"><button type="button" class="btn pri" id="fBtnBawah">📊 Grafik &amp; data ↓</button><button type="button" class="btn" id="fBtnAI">✨ Analisis AI</button><button type="button" class="btn" id="fBtnTbl">📋 Lihat semua data</button></div></div></section></div></div></div>' +
       '<div class="mbelow" id="mbelow"><div class="kpis" id="fKpi"></div><div class="grid2"><div class="card"><h3 id="fct1"></h3><div class="cv" style="height:360px"><canvas id="fc1"></canvas></div></div><div class="card"><h3 id="fct2"></h3><div class="cv" style="height:360px"><canvas id="fc2"></canvas></div></div></div>' +
       '<div class="card" id="fWarnCard" style="display:none"><div id="fWarn"></div></div>' +
@@ -1696,22 +1841,22 @@ go('peta'); schedule();
   }
   function bindFas() {
     const on = (id, ev, fn) => { const e = $(id); if (e) e[ev] = fn; };
-    const sheet = open => { const s = $('fSheet'); const o = typeof open === 'boolean' ? open : !s.classList.contains('open'); s.classList.toggle('open', o); $('fHead').setAttribute('aria-expanded', o); };
+    const sheet = () => { const s = $('fSheet'); const o = s.classList.toggle('open'); $('fHead').setAttribute('aria-expanded', o); };
     const bawah = () => { const e = $('mbelow'); if (e) e.scrollIntoView({ behavior: 'smooth', block: 'start' }); };
-    on('fHead', 'onclick', () => sheet());
+    on('fHead', 'onclick', sheet);
     on('fGrupBar', 'onclick', e => { const b = e.target.closest('button'); if (!b) return; ST.fgrup = b.dataset.g; ST.fjenis = null; updFas(); });
     on('fChips', 'onclick', e => {
       const b = e.target.closest('button'); if (!b) return;
-      if (b.dataset.a === 'all') ST.fjenis = new Set(ST.fjAll || []);
-      else if (b.dataset.a === 'none') ST.fjenis = new Set();
+      if (b.dataset.a === 'all') ST.fjenis = new Set(ST.fjAll || []); else if (b.dataset.a === 'none') ST.fjenis = new Set();
       else { const j = b.dataset.j; if (ST.fjenis.has(j)) ST.fjenis.delete(j); else ST.fjenis.add(j); }
       updFas();
     });
     on('fCari', 'oninput', e => { ST.fq = e.target.value; updFas(); });
-    on('fLegBtn', 'onclick', () => fPanel('fLegP')); on('fBaseBtn', 'onclick', () => fPanel('fBaseP'));
+    on('fLegBtn', 'onclick', () => fPanel('fLegP')); on('fBaseBtn', 'onclick', () => fPanel('fBaseP')); on('fJnsBtn', 'onclick', () => fPanel('fJnsP'));
+    on('fJnsP', 'onclick', e => { const b = e.target.closest('.jbtn'); if (!b) return; ST.fjp = b.dataset.j; fPanel(''); updFas(); });
     const lp = $('fLegP'); if (lp && window.innerWidth >= 900) lp.style.display = '';
     document.querySelectorAll('input[name="fbase"]').forEach(r => { r.onchange = () => { ST.fbase = r.value; if (!FM) return; Object.keys(FB).forEach(k => { if (FM.hasLayer(FB[k])) FM.removeLayer(FB[k]); }); FB[r.value].addTo(FM); }; });
-    on('fBack', 'onclick', () => { if (FM && FAS && FAS.kabBounds) { ST.sel.fk = []; ST.fkSig = null; updFas(); } });
+    on('fBack', 'onclick', () => { if (FM && FAS && FAS.kabBounds) { ST.sel.fk = []; ST.sel.fd = []; ST.fkSig = null; updFas(); } });
     on('fZin', 'onclick', () => { if (FM) FM.zoomIn(); }); on('fZout', 'onclick', () => { if (FM) FM.zoomOut(); });
     on('fUnm', 'onclick', () => { bawah(); const d = $('fDet'); if (d) d.open = true; });
     on('fBtnBawah', 'onclick', bawah);
@@ -1720,32 +1865,27 @@ go('peta'); schedule();
     on('fTbl', 'onclick', e => { const tr = e.target.closest('tr[data-fi]'); if (tr && FAS) showMarker(FAS.recs[+tr.dataset.fi]); });
   }
 
-  /* ---------- pemasangan ke aplikasi ---------- */
-  MENUS.push({ id: ID, icon: '🏗️', label: 'Infrastruktur', desc: 'Sebaran fasilitas kesehatan dan pendidikan di Kabupaten Ngawi.' });
-  const pa = document.querySelector('#nav a[data-id="peta"]');
-  const link = '<a data-id="' + ID + '" tabindex="0"><span>🏗️</span>Infrastruktur</a>';
-  if (pa) pa.insertAdjacentHTML('afterend', link); else $('nav').insertAdjacentHTML('beforeend', link);
-
-  const _go = go, _update = update, _load = load, _xls = $('bXls').onclick;
+  /* ============================== PEMASANGAN ============================== */
+  const _go = go, _update = update, _load = load;
   go = function (id) {
-    if (FM) { FM.remove(); FM = null; FG = null; FKL = null; }
-    if (id !== ID) return _go(id);
+    if (FM) { FM.remove(); FM = null; FG = null; FBL = null; FSEL = null; FKAB = null; }
+    if (id !== ID && id !== 'about') { const r = _go(id); syncNav(id); return r; }
     if (MAP) { MAP.remove(); MAP = null; GRP = null; LOK.grp = null; }
     cur = id;
-    ST = { pjenis: 'kec', tIdx: 0, type: null, cn: null, sort: null, q: '', sel: {}, showAll: false, dkey: '', fgrup: (ST && ST.fgrup) || 'kesehatan', fjenis: null, fq: '', fkSig: null, ftbl: false, fbase: 'Peta jalan' };
+    ST = { pjenis: 'kec', tIdx: 0, type: null, cn: null, sort: null, q: '', sel: {}, showAll: false, dkey: '', fgrup: (ST && ST.fgrup) || 'kesehatan', fjp: 'kec', fjenis: null, fq: '', fkSig: null, fbSig: null, ftbl: false, fbase: 'Peta jalan' };
     Object.values(charts).forEach(c => c.destroy()); charts = {};
     document.querySelectorAll('.nav a').forEach(a => a.classList.toggle('on', a.dataset.id === id));
-    drawer(false); window.scrollTo(0, 0); $('sheetName').textContent = 'Menghubungkan…';
-    document.body.classList.add('mapmode'); document.body.classList.remove('popen');
-    $('main').innerHTML = pageHTML();
-    $('aiFab').style.display = 'none'; io.disconnect(); io.observe($('ai')); ioMap.disconnect(); $('toMap').style.display = 'none'; ioMap.observe($('mapfull'));
+    drawer(false); window.scrollTo(0, 0); $('sheetName').textContent = 'Menghubungkan…'; document.body.classList.remove('popen');
+    $('aiFab').style.display = 'none'; io.disconnect(); ioMap.disconnect(); $('toMap').style.display = 'none';
+    if (id === 'about') { document.body.classList.remove('mapmode'); $('main').innerHTML = aboutHTML(); return; }
+    document.body.classList.add('mapmode');
+    $('main').innerHTML = pageHTML(); io.observe($('ai')); ioMap.observe($('mapfull'));
     bindFas();
     if (FAS && FAS.ready) updFas(); else $('msg').innerHTML = '<div class="card"><div class="load"></div><div class="load" style="width:70%"></div><div class="load" style="width:50%"></div></div>';
     load(FAS && FAS.ready ? false : true);
   };
-  update = function () { if (cur === ID) return updFas(); return _update(); };
-  load = function (force) { if (cur === ID) return loadFas(force); return _load(force); };
-  $('bXls').onclick = function () { if (cur === ID) return exportFas(); return _xls.apply(this, arguments); };
+  update = function () { if (cur === ID) return updFas(); if (cur === 'about') return; return _update(); };
+  load = function (force) { if (cur === ID) return loadFas(force); if (cur === 'about') return; return _load(force); };
 })();
 </script>
 </body>
